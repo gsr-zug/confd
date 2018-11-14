@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mattn/go-shellwords"
 	"net"
 	"os"
+	"os/exec"
 	"path"
 	"sort"
 	"strconv"
@@ -38,6 +40,7 @@ func newFuncMap() map[string]interface{} {
 	m["lookupIPV6"] = LookupIPV6
 	m["lookupSRV"] = LookupSRV
 	m["fileExists"] = util.IsFileExist
+	m["system"] = System
 	m["base64Encode"] = Base64Encode
 	m["base64Decode"] = Base64Decode
 	m["parseBool"] = strconv.ParseBool
@@ -227,6 +230,26 @@ func LookupSRV(service, proto, name string) []*net.SRV {
 	}
 	sort.Sort(sortSRV(addrs))
 	return addrs
+}
+
+func System(line string) string {
+	cmd, err := shellwords.Parse(line)
+	if err != nil {
+		return ""
+	}
+	var out []byte
+	switch len(cmd) {
+	case 0:
+		out = []byte{}
+	case 1:
+		out, err = exec.Command(cmd[0]).Output()
+	default:
+		out, err = exec.Command(cmd[0], cmd[1:]...).Output()
+	}
+	if err != nil {
+		return ""
+	}
+	return strings.TrimRight(string(out), "\n")
 }
 
 func Base64Encode(data string) string {

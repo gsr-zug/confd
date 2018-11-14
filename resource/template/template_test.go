@@ -418,6 +418,23 @@ bz: baz
 	},
 
 	templateTest{
+		desc: "system test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = []
+`,
+		tmpl: `
+{{system "echo test"}}
+`,
+		expected: `
+test
+`,
+		updateStore: func(tr *TemplateResource) {},
+	},
+
+	templateTest{
 		desc: "toUpper test",
 		toml: `
 [template]
